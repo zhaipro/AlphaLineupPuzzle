@@ -31,13 +31,19 @@ class TestGameStat(unittest.TestCase):
             pass
 
     def test_update(self):
-        self.gs._move(Block.base['T'], (0, 0))
+        self.gs._move(Block.base['#'], (0, 1))
+        self.gs._move(Block.base['L'], (0, 0))
         self.gs._move(Block.base['#'], (0, 3))
-        self.gs._move(Block.base['#'], (0, 5))
-        self.assertTrue(np.all(self.gs.board[0] == 0))
+        self.gs._move(Block.base['#'], (1, 5))
+        self.assertTrue(np.all(self.gs.board[1] == 0))
         self.assertEqual(self.gs.score, 500)
 
     def test_ext(self):
         for idx, _ in enumerate(self.gs.alternative):
             for _ in self.gs.ext(idx):
                 pass
+
+    def test_to_str(self):
+        str(self.gs)
+        self.gs.move(1, (0, 0))
+        str(self.gs)

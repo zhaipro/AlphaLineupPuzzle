@@ -16,6 +16,9 @@ class Block(object):
         return self.block.shape == other.block.shape and \
             np.all(self.block == other.block)
 
+    def __str__(self):
+        return str(self.block)
+
     @staticmethod
     def _add(block):
         b = Block(block)
@@ -59,7 +62,7 @@ class GameState(object):
         if self.is_legal_move(block, pos):
             x, y = pos
             w, h = block.block.shape
-            self.board[x:x + w, y:y + h] = block.block
+            self.board[x:x + w, y:y + h] += block.block
             self.update()
         else:
             raise IllegalMove('illegal move pos: (%s, %s)' % pos)
@@ -102,27 +105,12 @@ class GameState(object):
             gs.alternative[idx] = block
             yield gs
 
-    def update(self):
-        a = self.board.sum(0)   # 竖着
-        self.board[:, a == self.size] = 0
-        self.score += ((a == self.size) * 500).sum()
-
-        a = self.board.sum(1)   # 横着
-        self.board[a == self.size] = 0
-        self.score += ((a == self.size) * 500).sum()
-
-    def copy(self):
-        gs = GameState(self.size)
-        gs.score = self.score
-        gs.board = self.board.copy()
-        gs.alternative = self.alternative.copy()
-        return gs
-
-    def ext(self, idx):
-        for block in Block.blocks:
-            gs = self.copy()
-            gs.alternative[idx] = block
-            yield gs
+    def __str__(self):
+        s = ['=' * 10, str(self.board), ]
+        for a in self.alternative:
+            s.append(str(a))
+        s.append('-' * 10)
+        return '\n'.join(s)
 
 
 class IllegalMove(Exception):
