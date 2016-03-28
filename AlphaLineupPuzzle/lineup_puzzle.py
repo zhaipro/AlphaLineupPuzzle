@@ -7,6 +7,7 @@ import numpy as np
 class Block(object):
 
     blocks = []
+    base = {}
 
     def __init__(self, block):
         self.block = block
@@ -20,11 +21,13 @@ class Block(object):
         b = Block(block)
         if b not in Block.blocks:
             Block.blocks.append(b)
+        return b
 
     @staticmethod
-    def add(block):
+    def add(block, name):
         block = np.array(block)
-        Block._add(block)
+        b = Block._add(block)
+        Block.base[name] = b
         for _ in range(3):
             block = np.rot90(block)
             Block._add(block)
@@ -37,39 +40,89 @@ class Block(object):
 
     @staticmethod
     def init():
-        Block.add([[1, 1, 0], [0, 1, 1]])    # z 4
-        Block.add([[1], [1], [1], [1]])      # l 2
-        Block.add([[1, 0], [1, 0], [1, 1]])  # L 8
-        Block.add([[1, 1, 1], [0, 1, 0]])    # T 4
-        Block.add([[1, 1], [1, 1]])          # # 1
+        Block.add([[1, 1, 0], [0, 1, 1]], 'z')    # z 4
+        Block.add([[1], [1], [1], [1]], 'l')      # l 2
+        Block.add([[1, 0], [1, 0], [1, 1]], 'L')  # L 8
+        Block.add([[1, 1, 1], [0, 1, 0]], 'T')    # T 4
+        Block.add([[1, 1], [1, 1]], '#')          # # 1
 
 
 class GameState(object):
 
     def __init__(self, size=7):
+        self.score = 0
         self.size = size
         self.board = np.zeros((size, size))
         self.alternative = np.random.choice(Block.blocks, 3)
 
-    def move(self, block, pos):
+    def _move(self, block, pos):
         if self.is_legal_move(block, pos):
             x, y = pos
             w, h = block.block.shape
             self.board[x:x + w, y:y + h] = block.block
+            self.update()
         else:
             raise IllegalMove('illegal move pos: (%s, %s)' % pos)
 
+    def move(self, idx, pos):
+        self._move(self.alternative[idx], pos)
+        self.alternative[idx] = np.random.choice(Block.blocks)
+
     def legal_moves(self):
         t = range(self.size)
-        for block, x, y in itertools.product(self.alternative, t, t):
+        for (idx, block), x, y in itertools.product(enumerate(self.alternative), t, t):
             if self.is_legal_move(block, (x, y)):
-                yield block, (x, y)
+                yield idx, (x, y)
 
     def is_legal_move(self, block, pos):
         x, y = pos
         w, h = block.block.shape
         return 0 <= x <= self.size - w and 0 <= y <= self.size - h and \
-            np.all(self.board[x:x + w, y:y + h] == 0)
+            np.all((self.board[x:x + w, y:y + h] * block.block) == 0)
+
+    def update(self):
+        a = self.board.sum(0)   # 竖着
+        self.board[:, a == self.size] = 0
+        self.score += ((a == self.size) * 500).sum()
+
+        a = self.board.sum(1)   # 横着
+        self.board[a == self.size] = 0
+        self.score += ((a == self.size) * 500).sum()
+
+    def copy(self):
+        gs = GameState(self.size)
+        gs.score = self.score
+        gs.board = self.board.copy()
+        gs.alternative = self.alternative.copy()
+        return gs
+
+    def ext(self, idx):
+        for block in Block.blocks:
+            gs = self.copy()
+            gs.alternative[idx] = block
+            yield gs
+
+    def update(self):
+        a = self.board.sum(0)   # 竖着
+        self.board[:, a == self.size] = 0
+        self.score += ((a == self.size) * 500).sum()
+
+        a = self.board.sum(1)   # 横着
+        self.board[a == self.size] = 0
+        self.score += ((a == self.size) * 500).sum()
+
+    def copy(self):
+        gs = GameState(self.size)
+        gs.score = self.score
+        gs.board = self.board.copy()
+        gs.alternative = self.alternative.copy()
+        return gs
+
+    def ext(self, idx):
+        for block in Block.blocks:
+            gs = self.copy()
+            gs.alternative[idx] = block
+            yield gs
 
 
 class IllegalMove(Exception):
