@@ -11,7 +11,7 @@ class TestGameStat(unittest.TestCase):
 
     def setUp(self):
         Block.init()
-        self.gs = GameState()
+        self.gs = GameState.create()
 
     def test_blocks_len(self):
         self.assertEqual(len(Block.blocks), 19)

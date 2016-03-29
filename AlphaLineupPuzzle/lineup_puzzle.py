@@ -48,15 +48,19 @@ class Block(object):
         Block.add([[1, 0], [1, 0], [1, 1]], 'L')  # L 8
         Block.add([[1, 1, 1], [0, 1, 0]], 'T')    # T 4
         Block.add([[1, 1], [1, 1]], '#')          # # 1
+        Block.blocks = np.array(Block.blocks)
 
 
 class GameState(object):
 
-    def __init__(self, size=7):
-        self.score = 0
-        self.size = size
-        self.board = np.zeros((size, size))
-        self.alternative = np.random.choice(Block.blocks, 3)
+    @staticmethod
+    def create(size=7):
+        gs = GameState()
+        gs.score = 0
+        gs.size = size
+        gs.board = np.zeros((size, size), dtype=np.int)
+        gs.alternative = np.random.choice(Block.blocks, 3)
+        return gs
 
     def _move(self, block, pos):
         if self.is_legal_move(block, pos):
@@ -93,7 +97,8 @@ class GameState(object):
         self.score += ((a == self.size) * 500).sum()
 
     def copy(self):
-        gs = GameState(self.size)
+        gs = GameState()
+        gs.size = self.size
         gs.score = self.score
         gs.board = self.board.copy()
         gs.alternative = self.alternative.copy()

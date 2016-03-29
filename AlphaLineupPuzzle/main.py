@@ -1,10 +1,15 @@
 # coding: utf-8
+import numpy as np
+
 from lineup_puzzle import Block
 from lineup_puzzle import GameState
 import mcts
 
+
+np.random.seed(42)
+
 Block.init()
-gs = GameState()
+gs = GameState.create()
 
 print gs
 while True:
