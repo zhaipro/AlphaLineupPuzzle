@@ -81,6 +81,10 @@ def cache(func):
 
 
 class GameState(object):
+    '''
+    全程默认棋盘中有三个候选项，
+    可以设置大小也只是为了方便测试，正式环境全部是7 x 7
+    '''
 
     @staticmethod
     def create(size=7, alternative=None):
@@ -113,14 +117,16 @@ class GameState(object):
         else:
             raise IllegalMove('illegal move: %x' % block)
 
-    def move(self, idx, pos):
+    def move(self, idx, pos, next_alternative=None):
         block_idx = self.alternative[idx]
         block = Block.blocks[block_idx]
         self._move(block, pos)
-        block_idx = np.random.randint(0, len(Block.blocks))
-        self.alternative[idx] = block_idx
+
+        if next_alternative is None:
+            next_alternative = np.random.randint(0, len(Block.blocks))
+        self.alternative[idx] = next_alternative
         if self.history:
-            self.history.append(((idx, pos), block_idx))
+            self.history.append(((idx, pos), next_alternative))
 
     def legal_moves(self):
         t = range(self.size)
