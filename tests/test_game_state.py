@@ -47,3 +47,14 @@ class TestGameStat(unittest.TestCase):
         str(self.gs)
         self.gs.move(1, (0, 0))
         str(self.gs)
+
+    def test_history(self):
+        # 第一项为初始的三个候选项
+        self.assertEqual(len(self.gs.history), 1)
+        self.gs.move(1, (0, 0))
+        self.assertEqual(len(self.gs.history), 2)
+        # 第一步
+        self.assertEqual(self.gs.history[1][0], (1, (0, 0)))
+        self.assertTrue(0 <= self.gs.history[1][1] < len(Block.blocks))
+        # 不对拷贝得来的游戏状态记录历史
+        self.assertIsNone(self.gs.copy().history)

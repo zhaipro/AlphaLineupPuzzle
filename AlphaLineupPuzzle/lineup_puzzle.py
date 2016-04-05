@@ -13,8 +13,7 @@ class Block(object):
         self.block = block
 
     def __eq__(self, other):
-        return self.block.shape == other.block.shape and \
-            np.all(self.block == other.block)
+        return np.array_equal(self.block, other.block)
 
     def __str__(self):
         return str(self.block)
@@ -28,6 +27,9 @@ class Block(object):
 
     @staticmethod
     def add(block, name):
+        '''
+        添加形状block以及它的所有变体（旋转、镜面）
+        '''
         block = np.array(block)
         b = Block._add(block)
         Block.base[name] = b
@@ -54,12 +56,25 @@ class Block(object):
 class GameState(object):
 
     @staticmethod
-    def create(size=7):
+    def create(size=7, alternative=None):
         gs = GameState()
         gs.score = 0
         gs.size = size
         gs.board = np.zeros((size, size), dtype=np.int)
-        gs.alternative = np.random.choice(Block.blocks, 3)
+        if alternative:
+            assert len(alternative) == 3, '只能有三个候选项'
+            gs.alternative = list(alternative)
+        else:
+            gs.alternative = np.random.randint(0, len(Block.blocks), 3)
+
+        # l记录游戏进程
+        # 格式如：[((idx, (x, y)), next)]
+        # 其中:
+        #     idx表示某次玩家从候选列表中选择的方块(0~2)
+        #     (x, y)表示放置位置
+        #     表示玩家选择后棋盘随机产生的下一个方块编号
+        gs.history = [tuple(gs.alternative)]   # 游戏历史
+
         return gs
 
     def _move(self, block, pos):
@@ -72,12 +87,18 @@ class GameState(object):
             raise IllegalMove('illegal move pos: (%s, %s)' % pos)
 
     def move(self, idx, pos):
-        self._move(self.alternative[idx], pos)
-        self.alternative[idx] = np.random.choice(Block.blocks)
+        block_idx = self.alternative[idx]
+        block = Block.blocks[block_idx]
+        self._move(block, pos)
+        block_idx = np.random.randint(0, len(Block.blocks))
+        self.alternative[idx] = block_idx
+        if self.history:
+            self.history.append(((idx, pos), block_idx))
 
     def legal_moves(self):
         t = range(self.size)
-        for (idx, block), x, y in itertools.product(enumerate(self.alternative), t, t):
+        for (idx, block_idx), x, y in itertools.product(enumerate(self.alternative), t, t):
+            block = Block.blocks[block_idx]
             if self.is_legal_move(block, (x, y)):
                 yield idx, (x, y)
 
@@ -102,18 +123,19 @@ class GameState(object):
         gs.score = self.score
         gs.board = self.board.copy()
         gs.alternative = self.alternative.copy()
+        gs.history = None
         return gs
 
     def ext(self, idx):
-        for block in Block.blocks:
+        for block_idx, _ in enumerate(Block.blocks):
             gs = self.copy()
-            gs.alternative[idx] = block
+            gs.alternative[idx] = block_idx
             yield gs
 
     def __str__(self):
         s = ['=' * 10, str(self.board), ]
-        for a in self.alternative:
-            s.append(str(a))
+        for idx in self.alternative:
+            s.append(str(Block.blocks[idx]))
         s.append('-' * 10)
         return '\n'.join(s)
 
