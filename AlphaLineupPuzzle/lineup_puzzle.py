@@ -1,4 +1,7 @@
 # coding: utf-8
+'''
+全程硬编码，0表示指定位置没有方块，1表示有方块
+'''
 import itertools
 
 import numpy as np
@@ -106,7 +109,9 @@ class GameState(object):
         x, y = pos
         w, h = block.block.shape
         return 0 <= x <= self.size - w and 0 <= y <= self.size - h and \
-            np.all((self.board[x:x + w, y:y + h] * block.block) == 0)
+            not np.sum(self.board[x:x + w, y:y + h] * block.block)
+        # not np.any(self.board[x:x + w, y:y + h] * block.block)
+        # np.all(self.board[x:x + w, y:y + h] * block.block == 0)
 
     def update(self):
         a = self.board.sum(0)   # 竖着
