@@ -38,6 +38,15 @@ class TestGameStat(unittest.TestCase):
         self.assertTrue(np.all(self.gs.board[1] == 0))
         self.assertEqual(self.gs.score, 500)
 
+    def test_update2(self):
+        # 测试横竖连削
+        self.gs._move(Block.base['#'], (0, 3))
+        self.gs._move(Block.base['#'], (0, 5))
+        self.gs._move(Block.base['L'], (2, 1))
+        self.gs._move(Block.base['#'], (5, 0))
+        self.gs._move(Block.base['T'], (0, 0))
+        self.assertEqual(self.gs.score, 1000)
+
     def test_ext(self):
         for idx, _ in enumerate(self.gs.alternative):
             for _ in self.gs.ext(idx):

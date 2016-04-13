@@ -115,12 +115,13 @@ class GameState(object):
 
     def update(self):
         a = self.board.sum(0)   # 竖着
+        b = self.board.sum(1)   # 横着
+
         self.board[:, a == self.size] = 0
         self.score += ((a == self.size) * 500).sum()
 
-        a = self.board.sum(1)   # 横着
-        self.board[a == self.size] = 0
-        self.score += ((a == self.size) * 500).sum()
+        self.board[b == self.size] = 0
+        self.score += ((b == self.size) * 500).sum()
 
     def copy(self):
         gs = GameState()
