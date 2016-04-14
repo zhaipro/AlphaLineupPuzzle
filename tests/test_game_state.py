@@ -1,8 +1,6 @@
 # coding: utf-8
 import unittest
 
-import numpy as np
-
 from AlphaLineupPuzzle.lineup_puzzle import GameState
 from AlphaLineupPuzzle.lineup_puzzle import Block
 
@@ -15,6 +13,9 @@ class TestGameStat(unittest.TestCase):
 
     def test_blocks_len(self):
         self.assertEqual(len(Block.blocks), 19)
+
+    def test_block_to_str(self):
+        Block.to_str(Block.blocks[0])
 
     def test_move(self):
         self.gs.move(0, (0, 0))
@@ -35,7 +36,7 @@ class TestGameStat(unittest.TestCase):
         self.gs._move(Block.base['L'], (0, 0))
         self.gs._move(Block.base['#'], (0, 3))
         self.gs._move(Block.base['#'], (1, 5))
-        self.assertTrue(np.all(self.gs.board[1] == 0))
+        self.assertTrue((self.gs.board & 0x7f00) == 0)
         self.assertEqual(self.gs.score, 500)
 
     def test_update2(self):
