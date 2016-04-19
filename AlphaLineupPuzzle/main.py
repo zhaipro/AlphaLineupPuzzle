@@ -11,11 +11,11 @@ np.random.seed(42)
 Block.init()
 gs = GameState.create()
 
-print gs
+gs = GameState.create()
 while True:
-    move, score = mcts.search(gs, 2)
-    if move is None:
-        break
-    gs.move(*move)
-    print move, score, gs.score
     print gs
+    action, value = mcts.get_move(gs)
+    if action is None:
+        break
+    gs.move(*action)
+    print action, value, gs.score, value - gs.score

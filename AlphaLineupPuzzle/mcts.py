@@ -2,8 +2,6 @@
 import random
 import math
 
-from AlphaLineupPuzzle import lineup_puzzle
-
 
 class StateNode(object):
 
@@ -110,12 +108,6 @@ class ActionNode(StateNode):
             sn = StateNode(gs, self.depth - 1)
             self.children.append(sn)
 
-lineup_puzzle.Block.init()
-gs = lineup_puzzle.GameState.create()
-while True:
-    print gs
-    action, value = StateNode.get_move(gs, 5, 6000)
-    if action is None:
-        break
-    gs.move(*action)
-    print action, value, gs.score, value - gs.score
+
+def get_move(gs):
+    return StateNode.get_move(gs, 4, 6000)
