@@ -63,7 +63,7 @@ class StateNode(object):
         self.children = []
         for action in self.gs.legal_moves():
             gs = self.gs.copy()
-            an = ActionNode(gs, action, self.depth)
+            an = ActionNode(gs, action, self.depth - 1)
             self.children.append(an)
 
     @staticmethod
@@ -88,8 +88,6 @@ class ActionNode(StateNode):
         super(ActionNode, self).__init__(gs, depth)
         self.n = 0
         self.action = action
-        self.gs = gs.copy()
-        self.gs.move(*action)
 
     def __lt__(self, other):
         return self.value < other.value
@@ -101,11 +99,18 @@ class ActionNode(StateNode):
     def select(self):
         return random.choice(self.children)
 
+    def simulate(self):
+        gs = self.gs.copy()
+        gs.move(*self.action)
+        return gs.score
+
     def ext(self):
         self.children = []
-        for gs in self.gs.ext(self.action[0]):
-            gs = gs.copy()
-            sn = StateNode(gs, self.depth - 1)
+        gs = self.gs.copy()
+        gs.move(*self.action)
+        for _gs in gs.ext(self.action[0]):
+            _gs = _gs.copy()
+            sn = StateNode(_gs, self.depth)
             self.children.append(sn)
 
 
