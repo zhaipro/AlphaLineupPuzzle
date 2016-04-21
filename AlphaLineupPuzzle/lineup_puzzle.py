@@ -72,6 +72,14 @@ class Block(object):
         # Block.blocks = np.array(Block.blocks, dtype=np.int64)
 
 
+def cache(func):
+    def wrapper(*args, **kws):
+        if func:
+            result = func(*args, **kws)
+        return result
+    return wrapper
+
+
 class GameState(object):
 
     @staticmethod
@@ -79,7 +87,7 @@ class GameState(object):
         gs = GameState()
         gs.score = 0
         gs.size = size
-        gs.board = 0xff80808080808080
+        gs._board = 0xff80808080808080
         if alternative:
             assert len(alternative) == 3, '只能有三个候选项'
             gs.alternative = list(alternative)
@@ -100,7 +108,7 @@ class GameState(object):
         x, y = pos
         block = block << (8 * x + y)
         if self._is_legal_move(block):
-            self.board |= block
+            self._board |= block
             self.update()
         else:
             raise IllegalMove('illegal move: %x' % block)
@@ -130,28 +138,28 @@ class GameState(object):
                 block <<= 1
 
     def _is_legal_move(self, block):
-        return (self.board & block) == 0
+        return (self._board & block) == 0
 
     def is_legal_move(self, block, pos):
         x, y = pos
         block = block << (8 * x + y)
-        return (self.board & block) == 0
+        return (self._board & block) == 0
 
     def update(self):
         clear = 0
         for mask, shift in ((0x7f, 8), (0x0001010101010101, 1)):
             for _ in xrange(self.size):
-                if (self.board & mask) == mask:
+                if (self._board & mask) == mask:
                     self.score += 500
                     clear |= mask
                 mask <<= shift
-        self.board ^= clear
+        self._board ^= clear
 
     def copy(self):
         gs = GameState()
         gs.size = self.size
         gs.score = self.score
-        gs.board = self.board
+        gs._board = self._board
         gs.alternative = self.alternative.copy()
         gs.history = None
         return gs
@@ -163,11 +171,20 @@ class GameState(object):
             yield gs
 
     def __str__(self):
-        s = ['=' * 10, Block.to_str(self.board), ]
+        s = ['=' * 10, Block.to_str(self._board), ]
         for idx in self.alternative:
             s.append('-' * 10)
             s.append(Block.to_str(Block.blocks[idx]))
         return '\n'.join(s)
+
+    @property
+    @cache
+    def board(self):
+        baord = np.zeros((self.size, self.size))
+        for pos in itertools.product(xrange(self.size), xrange(self.size)):
+            if not self.is_legal_move(1, pos):
+                baord[pos] = 1
+        return baord
 
 
 class IllegalMove(Exception):

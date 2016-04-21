@@ -1,6 +1,8 @@
 # coding: utf-8
 import unittest
 
+import numpy as np
+
 from AlphaLineupPuzzle.lineup_puzzle import GameState
 from AlphaLineupPuzzle.lineup_puzzle import Block
 
@@ -36,7 +38,7 @@ class TestGameStat(unittest.TestCase):
         self.gs._move(Block.base['L'], (0, 0))
         self.gs._move(Block.base['#'], (0, 3))
         self.gs._move(Block.base['#'], (1, 5))
-        self.assertTrue((self.gs.board & 0x7f00) == 0)
+        self.assertTrue((self.gs._board & 0x7f00) == 0)
         self.assertEqual(self.gs.score, 500)
 
     def test_update2(self):
@@ -68,3 +70,10 @@ class TestGameStat(unittest.TestCase):
         self.assertTrue(0 <= self.gs.history[1][1] < len(Block.blocks))
         # 不对拷贝得来的游戏状态记录历史
         self.assertIsNone(self.gs.copy().history)
+
+    def test_board(self):
+        self.gs._move(Block.base['z'], (0, 0))
+        board = np.zeros_like(self.gs.board)
+        board[0, 0] = board[0, 1] = 1
+        board[1, 1] = board[1, 2] = 1
+        self.assertTrue(np.array_equal(self.gs.board, board))
