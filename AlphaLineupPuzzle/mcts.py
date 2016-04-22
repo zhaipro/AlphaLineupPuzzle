@@ -3,17 +3,21 @@ import random
 import math
 
 
+C_PUCT = 1.
+
+
 class StateNode(object):
 
     # 这将会是一颗巨大的搜索树
     # 以下语句可以节省大量内存
-    __slots__ = ('gs', 'value', 'children', 'depth')
+    __slots__ = ('gs', 'value', 'children', 'depth', 'n')
 
     def __init__(self, gs, depth):
         self.gs = gs
         self.value = 0
         self.children = None
         self.depth = depth
+        self.n = 0
 
     def select(self):
         for child in self.children:
@@ -21,11 +25,10 @@ class StateNode(object):
                 return child
 
         max_child = None
-        max_value = 0
+        max_value = -1  # 确保即使所有子节点都是零分也能选出一个子节点（第一个）。
         for child in self.children:
             dalta = (child.value - child.gs.score)
-
-            a = child.value + dalta / math.sqrt(child.n)
+            a = child.value + C_PUCT * dalta * math.sqrt(self.n) / (child.n + 1)
             if a > max_value:
                 max_value = a
                 max_child = child
@@ -58,6 +61,7 @@ class StateNode(object):
             self.value = child.value
         else:
             self.value = value
+        self.n += 1
 
     def ext(self):
         self.children = []
@@ -74,7 +78,10 @@ class StateNode(object):
             root.visit()
 
         if root.children:
-            child = max(root.children)
+            # > At the end of search AlphaGo selects the action with maximum
+            # > visit count; this is less sensitive to outliers than maximizing
+            # > action value.
+            child = max(root.children, key=lambda x: x.n)
             return child.action, child.value
         else:
             return None, 0
@@ -82,7 +89,7 @@ class StateNode(object):
 
 class ActionNode(StateNode):
 
-    __slots__ = ('n', 'action')
+    __slots__ = ('action')
 
     def __init__(self, gs, action, depth):
         super(ActionNode, self).__init__(gs, depth)
