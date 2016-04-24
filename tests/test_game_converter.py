@@ -9,7 +9,6 @@ from AlphaLineupPuzzle.preprocessing import game_converter
 class TestGameConverter(unittest.TestCase):
 
     def setUp(self):
-        lineup_puzzle.Block.init()
         self.gs = lineup_puzzle.GameState.create()
 
     def test_to_file(self):

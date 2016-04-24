@@ -9,9 +9,6 @@ from AlphaLineupPuzzle.preprocessing import preprocessing
 
 class TestPreprocessing(unittest.TestCase):
 
-    def setUp(self):
-        lineup_puzzle.Block.init()
-
     def test_int_to_onehot(self):
         oh = preprocessing.int_to_onehot(2, 4)
         ret = np.array_equal(oh, [0, 0, 1, 0])

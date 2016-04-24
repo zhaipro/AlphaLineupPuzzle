@@ -72,6 +72,9 @@ class Block(object):
         # Block.blocks = np.array(Block.blocks, dtype=np.int64)
 
 
+Block.init()    # 在模块内自行初始化
+
+
 def cache(func):
     def wrapper(*args, **kws):
         if func:

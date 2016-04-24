@@ -10,7 +10,6 @@ from AlphaLineupPuzzle.lineup_puzzle import Block
 class TestGameStat(unittest.TestCase):
 
     def setUp(self):
-        Block.init()
         self.gs = GameState.create()
 
     def test_blocks_len(self):

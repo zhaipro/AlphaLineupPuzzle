@@ -24,7 +24,6 @@ def convert_game(in_fn):
     '''
     save = json.load(open(in_fn))
     score, history = save['score'], save['history']
-    lineup_puzzle.Block.init()
     gs = lineup_puzzle.GameState.create(alternative=history[0])
     for action, next_alternative in history[1:]:
         state_tensor = state_to_tensor(gs)
@@ -78,7 +77,6 @@ def from_hdf5(hdf5_file):
     return h5f['states'].value, h5f['actions'].value
 
 if __name__ == '__main__':
-
     parser = argparse.ArgumentParser(description='#todo')
     parser.add_argument('infolder', help='游戏存档目录')
     parser.add_argument('-o', default='a.hdf5', help='输出目录')
