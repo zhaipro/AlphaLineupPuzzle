@@ -22,3 +22,4 @@ class TestGameConverter(unittest.TestCase):
 
     def test_convert_to_hdf5(self):
         game_converter.to_hdf5(('tests/data/save.json',), 'tests/data/save.hdf5')
+        states, actions = game_converter.from_hdf5('tests/data/save.hdf5')

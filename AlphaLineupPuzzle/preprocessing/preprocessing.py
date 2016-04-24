@@ -19,5 +19,4 @@ def state_to_tensor(gs):
 
 def action_to_tensor(idx, (x, y), size=7):
     oh = np.zeros((size, size, 3))
-    oh[x, y, idx] = 1
-    return oh.reshape(oh.size)
+    return np.array((x * 7 + y) * 3 + idx)

@@ -32,10 +32,10 @@ def convert_game(in_fn):
         gs.move(*action, next_alternative=next_alternative)
 
 
-def create_dataset_like(h5f, name, data):
+def create_dataset_like(h5f, name, data, dtype):
     # 创建一个数据集
     dataset = h5f.create_dataset(name,
-                                 dtype=np.float32,                  # chainer要求数据必须是32为浮点型
+                                 dtype=dtype,
                                  shape=(1,) + data.shape,
                                  maxshape=(None,) + data.shape,     # 'None' dimension allows it to grow arbitrarily
                                  chunks=(64,) + data.shape,
@@ -61,8 +61,8 @@ def to_hdf5(sgf_files, hdf5_file):
                 states.resize((count + 1,) + state.shape)
                 actions.resize((count + 1,) + action.shape)
             else:
-                states = create_dataset_like(h5f, 'states', state)
-                actions = create_dataset_like(h5f, 'actions', action)
+                states = create_dataset_like(h5f, 'states', state, np.float32)
+                actions = create_dataset_like(h5f, 'actions', action, np.int32)
             states[count] = state
             actions[count] = action
             count += 1

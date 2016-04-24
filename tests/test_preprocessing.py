@@ -19,8 +19,5 @@ class TestPreprocessing(unittest.TestCase):
         tensor = preprocessing.state_to_tensor(gs)
 
     def test_action_to_tensor(self):
-        tensor = preprocessing.action_to_tensor(1, (0, 1), 2)
-        a = [0, 0, 0, 0, 1, 0,
-             0, 0, 0, 0, 0, 0]
-        ret = np.array_equal(tensor, a)
-        self.assertTrue(ret)
+        tensor = preprocessing.action_to_tensor(1, (1, 2))
+        self.assertEqual(tensor, 28)
