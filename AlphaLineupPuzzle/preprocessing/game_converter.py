@@ -43,7 +43,6 @@ def create_dataset_like(h5f, name, data, dtype):
     return dataset
 
 
-
 def to_hdf5(sgf_files, hdf5_file):
     # http://docs.h5py.org/en/latest/high/group.html#Group.create_dataset
     import h5py as h5
@@ -57,12 +56,12 @@ def to_hdf5(sgf_files, hdf5_file):
     count = 0
     for fn in sgf_files:
         for state, action in convert_game(fn):
-            if count:
-                states.resize((count + 1,) + state.shape)
-                actions.resize((count + 1,) + action.shape)
-            else:
+            if count == 0:
                 states = create_dataset_like(h5f, 'states', state, np.float32)
                 actions = create_dataset_like(h5f, 'actions', action, np.int32)
+            else:
+                states.resize((count + 1,) + state.shape)
+                actions.resize((count + 1,) + action.shape)
             states[count] = state
             actions[count] = action
             count += 1
