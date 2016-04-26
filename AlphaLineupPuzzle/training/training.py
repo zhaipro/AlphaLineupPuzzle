@@ -26,7 +26,7 @@ def test(model, X, Y, batchsize=100, verbose=False):     # NOQA
             sum_loss / len(X), sum_accuracy / len(X)))
 
 
-def training(X, Y, n, alpha=0.01, batchsize=100, verbose=False):   # NOQA
+def training(X, Y, n=20, alpha=0.01, batchsize=100, verbose=False):     # NOQA
     simples = len(X)
     X_train, X_test = np.split(X, [int(simples * 0.9 + 0.5)])
     Y_train, Y_test = np.split(Y, [int(simples * 0.9 + 0.5)])

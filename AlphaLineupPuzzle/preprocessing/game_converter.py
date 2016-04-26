@@ -10,26 +10,60 @@ from AlphaLineupPuzzle.preprocessing import state_to_tensor
 from AlphaLineupPuzzle.preprocessing import action_to_tensor
 
 
-def game_state_to_file(gs, fn):
-    assert gs.history
-    fp = open(fn, 'w')
-    json.dump({'history': gs.history, 'score': gs.score}, fp)
-    fp.close()
+class Save(object):
+
+    @staticmethod
+    def dump(gs, fn):
+        fp = open(fn, 'w')
+        save = {
+            'size': gs.size,
+            'score': gs.score,
+            # alternative, ((idx, pos), next_alternative)+
+            'history': gs.history,
+        }
+        json.dump(save, fp)
+        fp.close()
+
+    def load(self, fn):
+        save = json.load(open(fn))
+        self.size = save.get('size', 7)     # 兼容之前的版本
+        self.score = save['score']
+        history = save['history']
+        self._alternative, self._history = history[0], history[1:]
+
+    # 以下三个接口是为了方便增广存档
+    def set_transform(self, idx):
+        pass
+
+    @property
+    def alternative(self):
+        return self._alternative
+
+    @property
+    def history(self):
+        return self._history
 
 
-def convert_game(in_fn):
+def _convert_game(save):
     '''
     转换指定存档文件中的每一步
     返回一个迭代器
     '''
-    save = json.load(open(in_fn))
-    score, history = save['score'], save['history']
-    gs = lineup_puzzle.GameState.create(alternative=history[0])
-    for action, next_alternative in history[1:]:
+    gs = lineup_puzzle.GameState.create(save.size, save.alternative)
+    for action, next_alternative in save.history:
         state_tensor = state_to_tensor(gs)
         action_tensor = action_to_tensor(*action)
         yield state_tensor, action_tensor
         gs.move(*action, next_alternative=next_alternative)
+
+
+def convert_game(save_filename):
+    save = Save()
+    save.load(save_filename)
+    for idx in xrange(8):
+        save.set_transform(idx)
+        for state, action in _convert_game(save):
+            yield state, action
 
 
 def create_dataset_like(h5f, name, data, dtype):
@@ -37,7 +71,8 @@ def create_dataset_like(h5f, name, data, dtype):
     dataset = h5f.create_dataset(name,
                                  dtype=dtype,
                                  shape=(1,) + data.shape,
-                                 maxshape=(None,) + data.shape,     # 'None' dimension allows it to grow arbitrarily
+                                 # None表示允许无限增长
+                                 maxshape=(None,) + data.shape,
                                  chunks=(64,) + data.shape,
                                  compression='lzf')
     return dataset
