@@ -10,10 +10,13 @@ import itertools
 
 import numpy as np
 
+import util
+
 
 class Block(object):
 
     blocks = []
+    _blocks = []
     base = {}
 
     @staticmethod
@@ -42,6 +45,7 @@ class Block(object):
         b = Block.create(block)
         if b not in Block.blocks:
             Block.blocks.append(b)
+            Block._blocks.append(block.copy())
         return b
 
     @staticmethod
@@ -49,18 +53,13 @@ class Block(object):
         '''
         添加形状block以及它的所有变体（旋转、镜面）
         '''
-        block = np.array(block)
-        b = Block._add(block)
-        Block.base[name] = b
-        for _ in range(3):
-            block = np.rot90(block)
-            Block._add(block)
+        for block in util.augment(block):
+            b = Block._add(block)
+            Block.base.setdefault(name, b)
 
-        block = np.fliplr(block)
-        Block._add(block)
-        for _ in range(3):
-            block = np.rot90(block)
-            Block._add(block)
+    @staticmethod
+    def augment(block_idx, idx):
+        return Block.transforms[block_idx][idx]
 
     @staticmethod
     def init():
@@ -71,16 +70,16 @@ class Block(object):
         Block.add([[1, 1], [1, 1]], '#')          # # 1
         # Block.blocks = np.array(Block.blocks, dtype=np.int64)
 
+        def block2idx(b):
+            # 数组到索引
+            b = Block.create(b)
+            idx = Block.blocks.index(b)
+            return idx
+
+        Block.transforms = [map(block2idx, util.augment(b)) for b in Block._blocks]
+
 
 Block.init()    # 在模块内自行初始化
-
-
-def cache(func):
-    def wrapper(*args, **kws):
-        if func:
-            result = func(*args, **kws)
-        return result
-    return wrapper
 
 
 class GameState(object):
@@ -187,7 +186,6 @@ class GameState(object):
         return '\n'.join(s)
 
     @property
-    @cache
     def board(self):
         baord = np.zeros((self.size, self.size))
         for pos in itertools.product(xrange(self.size), xrange(self.size)):

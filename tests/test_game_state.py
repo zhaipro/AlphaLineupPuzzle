@@ -76,3 +76,7 @@ class TestGameStat(unittest.TestCase):
         board[0, 0] = board[0, 1] = 1
         board[1, 1] = board[1, 2] = 1
         self.assertTrue(np.array_equal(self.gs.board, board))
+
+    def test_transform(self):
+        for idx, block_idxs in enumerate(Block.transforms):
+            self.assertEqual(idx, block_idxs[0])

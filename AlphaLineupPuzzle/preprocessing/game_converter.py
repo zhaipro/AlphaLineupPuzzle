@@ -5,6 +5,7 @@ import json
 
 import numpy as np
 
+from AlphaLineupPuzzle import util
 from AlphaLineupPuzzle import lineup_puzzle
 from AlphaLineupPuzzle.preprocessing import state_to_tensor
 from AlphaLineupPuzzle.preprocessing import action_to_tensor
@@ -29,19 +30,25 @@ class Save(object):
         self.size = save.get('size', 7)     # 兼容之前的版本
         self.score = save['score']
         history = save['history']
-        self._alternative, self._history = history[0], history[1:]
+        self.__alternative, self._history = history[0], history[1:]
 
     # 以下三个接口是为了方便增广存档
     def set_transform(self, idx):
-        pass
+        self._alternative = list(self.__alternative)
+        self.idx = idx
 
     @property
     def alternative(self):
-        return self._alternative
+        return [lineup_puzzle.Block.augment(b, self.idx) for b in self._alternative]
 
     @property
     def history(self):
-        return self._history
+        for (idx, pos), next_alternative in self._history:
+            block_idx = self._alternative[idx]
+            self._alternative[idx] = next_alternative
+            shape = lineup_puzzle.Block._blocks[block_idx].shape
+            action = idx, util.AUGMENT_POS[self.idx](pos, self.size, shape)
+            yield action, lineup_puzzle.Block.augment(next_alternative, self.idx)
 
 
 def _convert_game(save):
