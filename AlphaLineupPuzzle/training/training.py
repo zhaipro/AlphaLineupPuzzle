@@ -10,7 +10,15 @@ from AlphaLineupPuzzle.models import policy
 from AlphaLineupPuzzle.preprocessing import game_converter
 
 
-def test(model, X, Y, batchsize=100, verbose=False):     # NOQA
+def dbg(fmt, *args):
+    print fmt % args
+
+
+def quiet_dbg(fmt, *args):
+    pass
+
+
+def test(model, X, Y, batchsize=800):   # NOQA
     # evaluation
     sum_accuracy = 0
     sum_loss = 0
@@ -21,24 +29,22 @@ def test(model, X, Y, batchsize=100, verbose=False):     # NOQA
         sum_loss += float(loss.data) * len(t.data)
         sum_accuracy += float(model.accuracy.data) * len(t.data)
 
-    if verbose:
-        print('test mean loss=%s, accuracy=%s' % (
-            sum_loss / len(X), sum_accuracy / len(X)))
+    dbg('test mean loss=%s, accuracy=%s',
+        sum_loss / len(X), sum_accuracy / len(X))
 
 
-def training(X, Y, n=20, alpha=0.01, batchsize=100, verbose=False):     # NOQA
+def training(X, Y, n=20, alpha=0.01, batchsize=100, output=None):    # NOQA
     simples = len(X)
     X_train, X_test = np.split(X, [int(simples * 0.9 + 0.5)])
     Y_train, Y_test = np.split(Y, [int(simples * 0.9 + 0.5)])
 
     # 抱歉这里硬编码了
-    model = L.Classifier(policy.Policy(X_train[0].size, 7 * 7 * 3))
-    optimizer = optimizers.SGD(alpha)
+    model = L.Classifier(policy.Policy(X[0].size, 7 * 7 * 3))
+    optimizer = optimizers.Adam(alpha)
     optimizer.setup(model)
     datasize = len(X_train)
-    for epoch in xrange(n):
-        if verbose:
-            print 'epoch %d' % epoch
+    for epoch in xrange(1, n + 1):
+        dbg('epoch %d', epoch)
         indexes = np.random.permutation(datasize)
         sum_accuracy = 0
         sum_loss = 0
@@ -49,18 +55,18 @@ def training(X, Y, n=20, alpha=0.01, batchsize=100, verbose=False):     # NOQA
 
             sum_loss += float(model.loss.data) * len(t.data)
             sum_accuracy += float(model.accuracy.data) * len(t.data)
-        print 'train mean loss=%s, accuracy=%s' % (
+
+        dbg('train mean loss=%s, accuracy=%s',
             sum_loss / len(X_train), sum_accuracy / len(X_train))
 
-    # Save the model and the optimizer
-    if verbose:
-        print('save the model')
-    serializers.save_npz('mlp.model', model)
-    if verbose:
-        print('save the optimizer')
-    serializers.save_npz('mlp.state', optimizer)
+        test(model, X_test, Y_test)
 
-    test(model, X_test, Y_test, verbose=verbose)
+    # Save the model and the optimizer
+    if output:
+        dbg('save the model to %s.model.npz', output)
+        serializers.save_npz('%s.model.npz' % output, model)
+        dbg('save the optimizer to %s.state.npz', output)
+        serializers.save_npz('%s.state.npz' % output, optimizer)
 
 
 if __name__ == '__main__':
@@ -69,8 +75,12 @@ if __name__ == '__main__':
     parser.add_argument('-a', '--alpha', type=float, help='学习速率')
     parser.add_argument('-b', '--batch', type=int, help='批次')
     parser.add_argument('-n', type=int, help='迭代次数')
+    parser.add_argument('-o', '--output', help='序列化模型')
     parser.add_argument('-v', '--verbose', action='store_true')
     args = parser.parse_args()
 
+    if not args.verbose:
+        dbg = quiet_dbg     # NOQA
+
     states, actions = game_converter.from_hdf5(args.i)
-    training(states, actions, args.n, args.alpha, args.batch, args.verbose)
+    training(states, actions, args.n, args.alpha, args.batch, args.output)
