@@ -31,6 +31,7 @@ class Save(object):
         self.score = save['score']
         history = save['history']
         self.__alternative, self._history = history[0], history[1:]
+        self._alternative = self.__alternative
 
     # 以下三个接口是为了方便增广存档
     def set_transform(self, idx):
@@ -117,12 +118,46 @@ def from_hdf5(hdf5_file):
     h5f = h5.File(hdf5_file)
     return h5f['states'].value, h5f['actions'].value
 
+
+def stats_save(fn):
+    save = Save()
+    save.load(fn)
+    gs = lineup_puzzle.GameState.create(save.size, save._alternative)
+    alters = []
+    for action, next_alternative in save._history:
+        gs.move(*action, next_alternative=next_alternative)
+        alters.append(sum(1 for _ in gs.legal_moves()))
+    return save.score, len(save._history), alters
+
+
+def stats_saves(fns):
+    scores = []
+    steps = []
+    alters = []
+    for fn in fns:
+        score, step, alter = stats_save(fn)
+        scores.append(score)
+        steps.append(step)
+        alters.extend(alter)
+
+    print 'name\tcount\tsum\tmean\tmin\tmax'
+    for name, array in [('scores', scores), ('steps', steps), ('alters', alters)]:
+        array = np.array(array)
+        stats = [name, array.size, array.sum(),
+                 array.mean(), array.min(), array.max()]
+        print '\t'.join(map(str, stats))
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='#todo')
     parser.add_argument('infolder', help='游戏存档目录')
-    parser.add_argument('-o', default='a.hdf5', help='输出目录')
+    parser.add_argument('-o', help='输出目录')
     parser.add_argument('-v', '--verbose', action='store_true')
+    parser.add_argument('-s', '--stat', action='store_true',
+                        help='是否统计存档')
     args = parser.parse_args()
     fns = os.listdir(args.infolder)
-    fns = (os.path.join(args.infolder, fn) for fn in fns if fn.endswith('.json'))
-    to_hdf5(fns, args.o)
+    fns = (os.path.join(args.infolder, fn) for fn in fns if fn.endswith('.json'))   # NOQA
+    if args.o:
+        to_hdf5(fns, args.o)
+    elif args.stat:
+        stats_saves(fns)
