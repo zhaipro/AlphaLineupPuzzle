@@ -24,5 +24,11 @@ def state_to_tensor(gs):
     return np.concatenate(feat_tensors)
 
 
+state_to_tensor.features = len(lineup_puzzle.Block.blocks) * 3 + 4 * 7 * 7
+
+
 def action_to_tensor(idx, (x, y), size=7):
     return np.array((x * 7 + y) * 3 + idx)
+
+
+action_to_tensor.features = 3 * 7 * 7
