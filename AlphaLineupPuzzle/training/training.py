@@ -34,9 +34,10 @@ def test(model, X, Y, batchsize=800):   # NOQA
 
 
 def training(X, Y, n=20, alpha=0.01, batchsize=100, output=None):    # NOQA
+    # 7分训练，3分测试
     simples = len(X)
-    X_train, X_test = np.split(X, [int(simples * 0.9 + 0.5)])
-    Y_train, Y_test = np.split(Y, [int(simples * 0.9 + 0.5)])
+    X_train, X_test = np.split(X, [int(simples * 0.7)])
+    Y_train, Y_test = np.split(Y, [int(simples * 0.7)])
 
     # 抱歉这里硬编码了
     model = L.Classifier(policy.Policy(X[0].size, 7 * 7 * 3))
