@@ -95,7 +95,7 @@ class GameState(object):
         gs._board = 0xff80808080808080
         if alternative:
             assert len(alternative) == 3, '只能有三个候选项'
-            gs.alternative = list(alternative)
+            gs.alternative = np.array(alternative)
         else:
             gs.alternative = np.random.randint(0, len(Block.blocks), 3)
 

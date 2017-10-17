@@ -10,22 +10,34 @@ from preprocessing import game_converter
 
 
 def play(verbose):
-    gs = GameState.create()
+    blocks = raw_input('>>> ')
+    blocks = map(int, blocks.split())
+    gs = GameState.create(alternative=blocks)
+    if verbose:
+        print gs
     while True:
-        if verbose:
-            print gs
         action, value = mcts.get_move(gs)
         if action is None:
             break
         gs.move(*action)
         if verbose:
             print action, value, gs.score, value - gs.score
+            print gs
+        if args.interaction:
+            block = raw_input('>>> ')
+            block = int(block)
+            gs.alternative[action[0]] = block
     return gs
 
 
 def main(n, path, seed, verbose):
     if seed:
         np.random.seed(seed)
+
+    if args.interaction:
+        for idx, block in enumerate(Block.blocks):
+            print '--- %d ---' % idx
+            print Block.to_str(block)
 
     for idx in xrange(n):
         gs = play(verbose)
@@ -42,6 +54,8 @@ if __name__ == '__main__':
                         help='存档目录，默认不存档。')
     parser.add_argument('-s', '--seed', default=None,
                         type=int, help='设定随机种子，默认不设定')
+    parser.add_argument('-i', '--interaction', default=False,
+                        action='store_true', help=u'交互式')
     args = parser.parse_args()
 
     main(args.n, args.path, args.seed, args.verbose)
