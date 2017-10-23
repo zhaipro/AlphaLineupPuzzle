@@ -20,7 +20,7 @@ def load_policy_network(name):
 
         actions = []
         for idx, pos in gs.legal_moves():
-            action = preprocessing.action_to_tensor(idx, pos, gs.size)
+            action = preprocessing.action_to_tensor(gs, idx, pos, gs.size)
             actions.append(action)
 
         # 确保即使actions为空列表，也要构造一个int型的空np数组

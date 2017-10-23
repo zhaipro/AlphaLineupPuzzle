@@ -1,13 +1,15 @@
 # coding: utf-8
+from __future__ import unicode_literals
 import argparse
 
-import numpy as np
 import chainer
-from chainer import Variable, optimizers, serializers
 import chainer.links as L
+import numpy as np
+from chainer import Variable, optimizers, serializers
 
 from AlphaLineupPuzzle.models import policy
 from AlphaLineupPuzzle.preprocessing import game_converter
+from AlphaLineupPuzzle.preprocessing import preprocessing
 
 
 def dbg(fmt, *args):
@@ -23,8 +25,8 @@ def test(model, X, Y, batchsize=800):   # NOQA
     sum_accuracy = 0
     sum_loss = 0
     for i in xrange(0, len(X), batchsize):
-        x = chainer.Variable(X[i:i + batchsize], volatile='on')
-        t = chainer.Variable(Y[i:i + batchsize], volatile='on')
+        x = chainer.Variable(X[i:i + batchsize])
+        t = chainer.Variable(Y[i:i + batchsize])
         loss = model(x, t)
         sum_loss += float(loss.data) * len(t.data)
         sum_accuracy += float(model.accuracy.data) * len(t.data)
@@ -38,8 +40,7 @@ def training(X, Y, n=20, alpha=0.01, batchsize=100, output=None):    # NOQA
     X_train, X_test = np.split(X, [int(simples * 0.9 + 0.5)])
     Y_train, Y_test = np.split(Y, [int(simples * 0.9 + 0.5)])
 
-    # 抱歉这里硬编码了
-    model = L.Classifier(policy.Policy(X[0].size, 7 * 7 * 3))
+    model = L.Classifier(policy.Policy(X[0].size, preprocessing.action_to_tensor.features))
     optimizer = optimizers.Adam(alpha)
     optimizer.setup(model)
     datasize = len(X_train)

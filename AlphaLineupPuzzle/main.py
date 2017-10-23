@@ -1,15 +1,12 @@
 # coding: utf-8
+from __future__ import unicode_literals
 import argparse
 
 import numpy as np
 
-from lineup_puzzle import Block
 from lineup_puzzle import GameState
 import mcts
 from preprocessing import game_converter
-
-
-Block.init()
 
 
 def play(verbose):
@@ -36,15 +33,15 @@ def main(n, path, seed, verbose):
             game_converter.game_state_to_file(gs, '%s/%d.json' % (path, idx))
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description=u'主程序')
+    parser = argparse.ArgumentParser(description='主程序')
     parser.add_argument('-v', '--verbose', action='store_true',
-                        help=u'默认不输出。')
+                        help='默认不输出。')
     parser.add_argument('-n', default=1,
-                        type=int, help=u'游戏次数，默认只玩一次。')
+                        type=int, help='游戏次数，默认只玩一次。')
     parser.add_argument('-o', '--path', default=None,
-                        help=u'存档目录，默认不存档。')
+                        help='存档目录，默认不存档。')
     parser.add_argument('-s', '--seed', default=None,
-                        type=int, help=u'设定随机种子，默认不设定')
+                        type=int, help='设定随机种子，默认不设定')
     args = parser.parse_args()
 
     main(args.n, args.path, args.seed, args.verbose)

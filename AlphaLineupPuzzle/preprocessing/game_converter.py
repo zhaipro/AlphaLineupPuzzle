@@ -1,14 +1,15 @@
 # coding: utf-8
-import os
+from __future__ import unicode_literals
 import argparse
 import json
+import os
 
 import numpy as np
 
-from AlphaLineupPuzzle import util
 from AlphaLineupPuzzle import lineup_puzzle
-from AlphaLineupPuzzle.preprocessing import state_to_tensor
+from AlphaLineupPuzzle import util
 from AlphaLineupPuzzle.preprocessing import action_to_tensor
+from AlphaLineupPuzzle.preprocessing import state_to_tensor
 
 
 class Save(object):
@@ -60,7 +61,7 @@ def _convert_game(save):
     gs = lineup_puzzle.GameState.create(save.size, save.alternative)
     for action, next_alternative in save.history:
         state_tensor = state_to_tensor(gs)
-        action_tensor = action_to_tensor(*action)
+        action_tensor = action_to_tensor(gs, *action)
         yield state_tensor, action_tensor
         gs.move(*action, next_alternative=next_alternative)
 
@@ -68,7 +69,7 @@ def _convert_game(save):
 def convert_game(save_filename):
     save = Save()
     save.load(save_filename)
-    for idx in xrange(8):
+    for idx in xrange(args.extend):
         save.set_transform(idx)
         for state, action in _convert_game(save):
             yield state, action
@@ -151,6 +152,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='#todo')
     parser.add_argument('infolder', help='游戏存档目录')
     parser.add_argument('-o', help='输出目录')
+    parser.add_argument('-e', '--extend', default=8, type=int, help='增广个数')
     parser.add_argument('-v', '--verbose', action='store_true')
     parser.add_argument('-s', '--stat', action='store_true',
                         help='是否统计存档')

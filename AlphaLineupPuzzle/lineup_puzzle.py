@@ -68,7 +68,6 @@ class Block(object):
         Block.add([[1, 0], [1, 0], [1, 1]], 'L')  # L 8
         Block.add([[1, 1, 1], [0, 1, 0]], 'T')    # T 4
         Block.add([[1, 1], [1, 1]], '#')          # # 1
-        # Block.blocks = np.array(Block.blocks, dtype=np.int64)
 
         def block2idx(b):
             # 数组到索引

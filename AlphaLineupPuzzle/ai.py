@@ -1,7 +1,8 @@
 # coding: utf-8
-import time
+from __future__ import unicode_literals
 import argparse
 import random
+import time
 
 from AlphaLineupPuzzle import lineup_puzzle
 from AlphaLineupPuzzle import models
